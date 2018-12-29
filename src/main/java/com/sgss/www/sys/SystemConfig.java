@@ -1,18 +1,22 @@
 package com.sgss.www.sys;
 
-import com.sgss.www.conmon.AuthInterceptor;
-import com.sgss.www.conmon.FileHandler;
-import com.sgss.www.conmon.MyRenderFactory;
-import com.sgss.www.routes.V1Routes;
-import com.sgss.www.swagger.config.routes.SwaggerRoutes;
 import com.jfinal.config.*;
 import com.jfinal.kit.PathKit;
 import com.jfinal.kit.PropKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
+import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.jfinal.template.Engine;
+import com.sgss.www.conmon.AuthInterceptor;
+import com.sgss.www.conmon.FileHandler;
+import com.sgss.www.conmon.MyRenderFactory;
+import com.sgss.www.conmon.RedisTool;
+import com.sgss.www.routes.V1Routes;
+import com.sgss.www.swagger.config.routes.SwaggerRoutes;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author martins
@@ -20,6 +24,14 @@ import java.io.File;
 public class SystemConfig  extends JFinalConfig {
     @Override
     public void afterJFinalStart() {
+
+        //快递公司
+        RedisTool.del("expresss");
+        List<Record> shopexpress= Db.find(Db.getSqlPara("shop.expresss"));
+        for (Record r:shopexpress){
+            RedisTool.hset("expresss:"+r.get("name"),"name",r.get("name"));
+            RedisTool.sadd("expresss",r);
+        }
         super.afterJFinalStart();
     }
 

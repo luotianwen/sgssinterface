@@ -13,5 +13,15 @@ redis.password=123456
 redis.port=7777
 redis.timeout=300
 
-fileServer=http://img.sgss.com
+fileServer=http://localhost:8082
+
+userfiles.basedir=D:\cc
+
+
+
+weixin.AppID=wx9dd950d3bf8accaf
+weixin.MCHID=1486715192
+weixin.KEY=3FA1AFBE088A8A2AD25EAAB95D63748B
+weixin.ip=47.104.12.34
+weixin.notifyUrl=https://www.abc.com/v1/shop/weixinnotify
 

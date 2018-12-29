@@ -17,16 +17,16 @@ public class UserService extends BaseService {
         }
         String key=record.get("id");
         if(RedisTool.exists(key)){
-            RedisTool.del((String) RedisTool.getObject(key));
+            RedisTool.del(key);
         }
         String tokenId = JwtUtil.sign(key, StaticPublic.USERTOKENTIME);
         //缓存用户token
         RedisTool.setexObject(tokenId, StaticPublic.USERTOKENTIME, key);
-        //缓存用户信息
-        RedisTool.setexObject(key, StaticPublic.USERTOKENTIME, tokenId);
+       /* //缓存用户信息*/
+        RedisTool.setexObject(key, StaticPublic.USERTOKENTIME, record);
         record.remove("id");
         record.set("tokenId",tokenId);
-        return null;
+        return record;
     }
     private Record getUserInfoByOpenId(String openId){
         Record record= Db.findFirst(Db.getSqlPara("user.getUserByopenId",openId));

@@ -5,7 +5,8 @@
   head_img as "headImg",
   integral as "integral",
   nickname as "nickname",
-  phone as "phone"
+  phone as "phone",
+  openId
   from
   s_user s
   where

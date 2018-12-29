@@ -2,7 +2,6 @@ package com.sgss.www.swagger.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
-import com.hongkzh.www.swagger.annotation.*;
 import com.sgss.www.swagger.model.SwaggerDoc;
 import com.sgss.www.swagger.model.SwaggerGlobalPara;
 import com.sgss.www.swagger.model.SwaggerPath;
@@ -30,7 +29,7 @@ import java.util.Set;
 public class SwaggerController extends Controller {
 
     public void index() {
-        render("shop.html");
+        render("index.html");
     }
 
     public void api() {
