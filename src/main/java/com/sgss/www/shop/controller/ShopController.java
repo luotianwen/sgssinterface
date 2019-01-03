@@ -24,27 +24,29 @@ public class ShopController extends BaseController {
     Log log = Log.getLog(ShopController.class);
     @Inject
     ShopService shopService;
+
     @ApiOperation(url = "/v1/shop/indexData", tag = "shop", httpMethod = "post", description = "首页数据")
     @ApiResponses({
             @ApiResponse(code = 200, message = "成功", responseHeaders = {
                     @ResponseHeader(name = "code", description = " 0成功 1失败"),
                     @ResponseHeader(name = "data", description = " carousels[logo 图片 goodsId 商品id] " +
-                            "coupons[couponId 优惠券id  name 名称 full 满多少 reduction 减多少]"+
+                            "coupons[couponId 优惠券id  name 名称 full 满多少 reduction 减多少]" +
                             "brands[brandId 品牌id  name 名称 logo]"),
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void indexData() {
         ReqResponse<Record> r = new ReqResponse();
-        Record returnData=new Record();
+        Record returnData = new Record();
         //轮播图
-        returnData.set("carousels",shopService.getCarousel());
+        returnData.set("carousels", shopService.getCarousel());
         //优惠券
-        returnData.set("coupons",shopService.getCoupons());
+        returnData.set("coupons", shopService.getCoupons());
         //品牌
-        returnData.set("brands",shopService.getBrands());
+        returnData.set("brands", shopService.getBrands());
         r.setData(returnData);
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/goodsList", tag = "shop", httpMethod = "post", description = "首页商品数据")
     @Params({
             @Param(name = "pageNumber", description = "页数", required = true, dataType = "string"),
@@ -57,11 +59,12 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void goodsList() {
-        int pageNumber=getParaToInt("pageNumber");
+        int pageNumber = getParaToInt("pageNumber");
         ReqResponse<Page<Record>> r = new ReqResponse();
         r.setData(shopService.goodsList(pageNumber));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/allCategory", tag = "shop", httpMethod = "post", description = "分类数据")
     @ApiResponses({
             @ApiResponse(code = 200, message = "成功", responseHeaders = {
@@ -74,6 +77,7 @@ public class ShopController extends BaseController {
         r.setData(shopService.allCategory());
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/subCategory", tag = "shop", httpMethod = "post", description = "分类数据")
     @Params({
             @Param(name = "categoryId", description = "分类id", required = true, dataType = "string"),
@@ -86,11 +90,12 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void subCategory() {
-        String  categoryId=getPara("categoryId");
+        String categoryId = getPara("categoryId");
         ReqResponse<List<Record>> r = new ReqResponse();
         r.setData(shopService.subCategory(categoryId));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/getCategoryGoods", tag = "shop", httpMethod = "post", description = "分类商品数据")
     @Params({
             @Param(name = "categoryId", description = "分类id", required = true, dataType = "string"),
@@ -104,12 +109,13 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void getCategoryGoods() {
-        String  categoryId=getPara("categoryId");
-        int pageNumber=getParaToInt("pageNumber");
+        String categoryId = getPara("categoryId");
+        int pageNumber = getParaToInt("pageNumber");
         ReqResponse<Page<Record>> r = new ReqResponse();
-        r.setData(shopService.getCategoryGoods(categoryId,pageNumber));
+        r.setData(shopService.getCategoryGoods(categoryId, pageNumber));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/getHomeGoods", tag = "shop", httpMethod = "post", description = "首页分类数据")
     @Params({
             @Param(name = "pageNumber", description = "页数", required = true, dataType = "string"),
@@ -122,11 +128,12 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void getHomeGoods() {
-        int pageNumber=getParaToInt("pageNumber");
+        int pageNumber = getParaToInt("pageNumber");
         ReqResponse<Page<Record>> r = new ReqResponse();
         r.setData(shopService.getHomeGoods(pageNumber));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/getGoodsByGooId", tag = "shop", httpMethod = "post", description = " 商品详情")
     @Params({
             @Param(name = "goodsId", description = "商品id", required = true, dataType = "string"),
@@ -139,12 +146,13 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void getGoodsByGooId() {
-        String  goodsId=getPara("goodsId");
+        String goodsId = getPara("goodsId");
 
-        ReqResponse< Record > r = new ReqResponse();
+        ReqResponse<Record> r = new ReqResponse();
         r.setData(shopService.getGoodsByGooId(goodsId));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/addCart", tag = "shop", httpMethod = "post", description = "加入购物车")
     @Params({
             @Param(name = "skuId", description = "skuId", required = true, dataType = "string"),
@@ -159,14 +167,15 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void addCart() {
-        String  skuId=getPara("skuId");
-        String  userId=getAttr("userId");
-        int number=getParaToInt("number");
-        int type=getParaToInt("type");
-        ReqResponse< Record > r = new ReqResponse();
-        r.setData(shopService.addCart(skuId,userId,number,type));
+        String skuId = getPara("skuId");
+        String userId = getAttr("userId");
+        int number = getParaToInt("number");
+        int type = getParaToInt("type");
+        ReqResponse<Record> r = new ReqResponse();
+        r.setData(shopService.addCart(skuId, userId, number, type));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/syncCart", tag = "shop", httpMethod = "post", description = "操作购物车")
     @Params({
             @Param(name = "cartId", description = "cartId", required = true, dataType = "string"),
@@ -180,19 +189,20 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void syncCart() {
-        String  cartId=getPara("cartId");
-        String  userId=getAttr("userId");
-        int number=getParaToInt("number");
-        ReqResponse< String > r = new ReqResponse();
+        String cartId = getPara("cartId");
+        String userId = getAttr("userId");
+        int number = getParaToInt("number");
+        ReqResponse<String> r = new ReqResponse();
         try {
             shopService.syncCart(cartId, userId, number);
-        }catch (Exception e){
+        } catch (Exception e) {
             r.setCode(1);
             r.setMsg("操作失败");
             r.setData("");
         }
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/cartList", tag = "shop", httpMethod = "post", description = "购物车列表")
     @Params({
             @Param(name = "tokenId", description = "tokenId", required = true, dataType = "string"),
@@ -204,11 +214,12 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void cartList() {
-        String  userId=getAttr("userId");
-        ReqResponse< List<Record> > r = new ReqResponse();
+        String userId = getAttr("userId");
+        ReqResponse<List<Record>> r = new ReqResponse();
         r.setData(shopService.cartList(userId));
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/removeCart", tag = "shop", httpMethod = "post", description = "删除购物车")
     @Params({
             @Param(name = "cartId", description = "skuId", required = true, dataType = "string"),
@@ -222,13 +233,14 @@ public class ShopController extends BaseController {
                     @ResponseHeader(name = "msg", description = "失败原因")})
     })
     public void removeCart() {
-        String  cartId=getPara("cartId");
-        String  userId=getAttr("userId");
+        String cartId = getPara("cartId");
+        String userId = getAttr("userId");
 
-        ReqResponse< Record > r = new ReqResponse();
-        shopService.removeCart(cartId,userId) ;
+        ReqResponse<Record> r = new ReqResponse();
+        shopService.removeCart(cartId, userId);
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/preorder", tag = "shop", httpMethod = "post", description = "预下单")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
@@ -247,7 +259,7 @@ public class ShopController extends BaseController {
         String userId = getAttr("userId");
         String addressId = getPara("addressId");
         String[] cartIds = getPara("cartId").split(",");
-        String  couponId = getPara("couponId");
+        String couponId = getPara("couponId");
         ReqResponse<Record> r = new ReqResponse();
 
         try {
@@ -258,6 +270,7 @@ public class ShopController extends BaseController {
         }
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/saveOrder", tag = "shop", httpMethod = "post", description = "结算订单")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
@@ -274,9 +287,9 @@ public class ShopController extends BaseController {
     })
     public void saveOrder() {
         String userId = getAttr("userId");
-        String[] cartIds =  getPara("cartId").split(",");
+        String[] cartIds = getPara("cartId").split(",");
         String addressId = getPara("addressId");
-        String  couponId = getPara("couponId");
+        String couponId = getPara("couponId");
         ReqResponse<Record> r = new ReqResponse();
         try {
             r.setData(shopService.saveOrder(userId, cartIds, addressId, couponId));
@@ -302,10 +315,10 @@ public class ShopController extends BaseController {
     public void orderOk() {
         String userId = getAttr("userId");
         String ordersId = getPara("ordersId");
-        ReqResponse< Record> r = new ReqResponse();
+        ReqResponse<Record> r = new ReqResponse();
         try {
             shopService.orderOk(userId, ordersId);
-        }catch (Exception e){
+        } catch (Exception e) {
             r.setCode(1);
             r.setMsg("请求失败");
         }
@@ -326,15 +339,16 @@ public class ShopController extends BaseController {
     public void orderDelete() {
         String userId = getAttr("userId");
         String ordersId = getPara("ordersId");
-        ReqResponse< Record> r = new ReqResponse();
+        ReqResponse<Record> r = new ReqResponse();
         try {
             shopService.orderDelete(userId, ordersId);
-        }catch (Exception e){
+        } catch (Exception e) {
             r.setCode(1);
             r.setMsg("请求失败");
         }
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/orderList", tag = "shop", httpMethod = "post", description = "订单列表")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
@@ -360,6 +374,7 @@ public class ShopController extends BaseController {
         r.setData(record);
         renderJson(r);
     }
+
     @ApiOperation(url = "/v1/shop/weixinpay", tag = "shop", httpMethod = "post", description = "微信创建支付")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
@@ -376,7 +391,7 @@ public class ShopController extends BaseController {
         String userId = getAttr("userId");
         String ordersId = getPara("ordersId");
         String type = getPara("type");
-        String openId=((Record)RedisTool.getObject(userId)).getStr("openId");
+        String openId = ((Record) RedisTool.getObject(userId)).getStr("openId");
         ReqResponse<Record> r = new ReqResponse();
         WXPayClient wxPayClient = new WXPayClient(PropKit.get("weixin.AppID"), PropKit.get("weixin.MCHID"), PropKit.get("weixin.KEY"));
 
@@ -388,7 +403,7 @@ public class ShopController extends BaseController {
         }
         String ip = PropKit.get("weixin.ip");
         int totalFee = shopService.getTotalFeeByOrderId(type, ordersId);
-        String url =  PropKit.get("weixin.notifyUrl");
+        String url = PropKit.get("weixin.notifyUrl");
 
         UnifiedOrderRequest request = new UnifiedOrderRequest(body, SDKUtils.genOutTradeNo(),
                 totalFee, ip, url, tradeTyp, noncestr);
@@ -402,23 +417,23 @@ public class ShopController extends BaseController {
                     Record record = new Record();
                     String appid = PropKit.get("weixin.AppID");
                     noncestr = SDKUtils.genRandomStringByLength(32);
-                    String package1 = "prepay_id="+response.getPrepayId();
+                    String package1 = "prepay_id=" + response.getPrepayId();
                     long timeStamp = System.currentTimeMillis() / 1000;
                     record.set("timeStamp", timeStamp);
                     record.set("nonceStr", noncestr);
                     record.set("package", package1);
-                   /* record.set("prepayid", prepayid);*/
-                   /* record.set("codeurl", response.getCodeUrl());*/
+                    /* record.set("prepayid", prepayid);*/
+                    /* record.set("codeurl", response.getCodeUrl());*/
                     RequestParametersHolder requestParametersHolder = new RequestParametersHolder();
                     ACHashMap acHashMap = new ACHashMap();
                     acHashMap.put("appId", appid);
                     /*acHashMap.put("partnerid", partnerid);*/
-                   /* acHashMap.put("prepayid", prepayid);*/
+                    /* acHashMap.put("prepayid", prepayid);*/
                     acHashMap.put("package", package1);
                     acHashMap.put("nonceStr", noncestr);
                     acHashMap.put("timeStamp", timeStamp);
                     requestParametersHolder.setApplicationParams(acHashMap);
-                     String requestBoyStr = MapUtils.map2XmlString(acHashMap);
+                    String requestBoyStr = MapUtils.map2XmlString(acHashMap);
                     System.out.println(requestBoyStr);
                     String signContent = WXPaySignUtils.getSignatureContent(requestParametersHolder);
                     String sign = WXPaySignUtils.md5Sign(signContent, PropKit.get("weixin.KEY"), "UTF-8").toUpperCase();
@@ -432,14 +447,16 @@ public class ShopController extends BaseController {
                     r.setCode(1);
                     r.setMsg("请求支付失败");
                 }
-            }
-            else{
-                throw new BusinessException("签名错误");
+            } else {
+                r.setCode(1);
+                r.setMsg("签名错误");
+
             }
         } catch (WXPayApiException e) {
             e.printStackTrace();
             log.debug(e.getMessage());
-            throw new BusinessException("签名错误");
+            r.setCode(1);
+            r.setMsg("支付错误"+e.getMessage());
         }
 
         renderJson(r);
@@ -466,4 +483,128 @@ public class ShopController extends BaseController {
         r.setData(str);
         renderJson(r);
     }
+
+    @ApiOperation(url = "/v1/shop/saveAfterOrder", tag = "shop", httpMethod = "post", description = "申请售后")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "orderNumber", description = "订单号", required = true, dataType = "string"),
+            @Param(name = "type", description = "1退货2换货", required = true, dataType = "string"),
+            @Param(name = "content", description = "售后原因", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = " "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void saveAfterOrder() {
+        String orderNumber = getPara("orderNumber");
+        String type = getPara("type");
+        String content = getPara("content");
+        String userId = getAttr("userId");
+        ReqResponse<String> r = new ReqResponse();
+        try {
+            shopService.saveAfterOrder(orderNumber, type, content, userId);
+        } catch (BusinessException e) {
+            r.setCode(1);
+            r.setMsg(e.getErrMsg());
+        }
+        renderJson(r);
+    }
+    @ApiOperation(url = "/v1/shop/orderDetail", tag = "shop", httpMethod = "post", description = "订单详情")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "orderNumber", description = "订单号", required = true, dataType = "string"),
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = " "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void orderDetail() {
+        String orderNumber = getPara("orderNumber");
+
+        String userId = getAttr("userId");
+        ReqResponse<Record> r = new ReqResponse();
+        try {
+           r.setData(shopService.orderDetail(orderNumber, userId));
+        } catch (BusinessException e) {
+            r.setCode(1);
+            r.setMsg(e.getErrMsg());
+        }
+        renderJson(r);
+    }
+    @ApiOperation(url = "/v1/shop/cancelOrder", tag = "shop", httpMethod = "post", description = "取消订单")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "orderNumber", description = "订单号", required = true, dataType = "string"),
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = " "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void cancelOrder() {
+        String orderNumber = getPara("orderNumber");
+        String userId = getAttr("userId");
+        ReqResponse<String> r = new ReqResponse();
+        try {
+            shopService.cancelOrder(orderNumber, userId) ;
+        } catch (BusinessException e) {
+            r.setCode(1);
+            r.setMsg(e.getErrMsg());
+        }
+        renderJson(r);
+    }
+
+    @ApiOperation(url = "/v1/shop/afterOrderList", tag = "shop", httpMethod = "post", description = "售后订单列表")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "pageNumber", description = "页码", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "  totalPrice 支付现金 limitTime 支付倒计时 orderNumber 订单号  currentTime 当前时间 " +
+                            "expressName 快递公司 invoiceNo 订单号 state 订单状态 0全部 10等待付款 20 已支付  30 已发货 50 已完成  40 已取消 60已关闭" +
+                            "subList 订单商品[colorName 颜色名称 title 标题 imgSrc 商品图  number  数量 price 价格 specName规格名称] "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void afterOrderList() {
+        String userId = getAttr("userId");
+        int pageNumber = getParaToInt("pageNumber");
+        ReqResponse<Page<Record>> r = new ReqResponse();
+        Page<Record> record = shopService.afterOrderList(userId,  pageNumber );
+        r.setData(record);
+        renderJson(r);
+    }
+    @ApiOperation(url = "/v1/shop/cancelAfterOrder", tag = "shop", httpMethod = "post", description = "取消售后订单")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "afterOrderId", description = "单号", required = true, dataType = "string"),
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = " "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void cancelAfterOrder() {
+        String afterOrderId = getPara("afterOrderId");
+        String userId = getAttr("userId");
+        ReqResponse<String> r = new ReqResponse();
+        try {
+            shopService.cancelAfterOrder(afterOrderId, userId) ;
+        } catch (BusinessException e) {
+            r.setCode(1);
+            r.setMsg(e.getErrMsg());
+        }
+        renderJson(r);
+    }
+
 }

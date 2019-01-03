@@ -383,9 +383,10 @@ o.limitTime,
 express_name as expressName ,
 invoice_no as invoiceNo,
 now() AS currentTime,
-o.state
+o.state,
+s.id as "salesId"
 from  s_order o
-left join s_order_detail d on d.orderNumber=o.orderNumber
+left join s_order_after_sales s on s.orderNumber=o.orderNumber
 where o.del_flag=0
  #if(sk.notBlank(userId))
 and o.user_id=#para(userId)
@@ -404,9 +405,7 @@ and o.user_id=#para(userId)
      and (o.state=40 or o.state=60 )
    #end
   #end
- #if(sk.notBlank(name))
-and  d.title like CONCAT('%',#para(name),'%')
- #end
+
 order by o.create_date desc
 #end
 
@@ -444,7 +443,8 @@ state=30
 
 #sql("orderDelete")
 update s_order
-set del_flag=1
+set del_flag=1,
+update_date=now()
 where
 user_id=#para(0)
 and
@@ -452,6 +452,16 @@ orderNumber=#para(1)
 
 #end
 
+#sql("cancelOrder")
+update s_order
+set state=40,
+update=now()
+where
+user_id=#para(0)
+and
+orderNumber=#para(1)
+
+#end
 
 #sql("expresss")
  select
@@ -459,7 +469,70 @@ orderNumber=#para(1)
  name
  from s_express
  where state=1
+#end
+#sql("selectAterOrderByOrderNumber")
+select
+id
+from s_order_after_sales s
+where s.orderNumber=#para(0)
+and s.user_id=#para(1)
+and  s.del_flag=0
+#end
 
+#sql("saveAfterOrder")
+  INSERT INTO s_order_after_sales
+  (id,create_date,del_flag, orderNumber,apply_time,type,content,user_id,state
+  )
+  VALUES (#para(0), now(),0, #para(1), now(), #para(2)
+  , #para(3), #para(4) ,'10');
 #end
 
 
+
+
+#sql("userOrderDetailByOrderNumber")
+SELECT
+o.orderNumber,
+o.total_price as totalPrice,
+o.goods_price as goodsPrice,
+o.freight as freight,
+o.favorable_price as favorablePrice,
+o.limitTime,
+express_name as expressName ,
+invoice_no as invoiceNo,
+order_time AS orderTime,
+pay_type as "payType",
+o.state,
+consignee,
+address,
+phone,
+(select name from sys_area where id=o.province_id) as provinceName,
+(select name from sys_area where id=o.city_id) as cityName,
+(select name from sys_area where id=o.area_id) as areaName
+
+from  s_order o
+where o.del_flag=0
+and o.user_id=#para(0)
+and o.orderNumber=#para(1)
+#end
+
+
+
+#sql("afterOrderList")
+SELECT
+o.id as "afterOrderId",
+o.orderNumber,
+o.state,
+o.type
+from  s_order_after_sales o
+where o.del_flag=0
+and o.user_id=#para(userId)
+order by o.create_date desc
+#end
+
+
+#sql("cancelAfterOrder")
+ delete from  s_order_after_sales
+where   id=#para(1)
+and  user_id=#para(0)
+#end

@@ -29,7 +29,7 @@ public class SystemConfig  extends JFinalConfig {
         RedisTool.del("expresss");
         List<Record> shopexpress= Db.find(Db.getSqlPara("shop.expresss"));
         for (Record r:shopexpress){
-            RedisTool.hset("expresss:"+r.get("name"),"name",r.get("name"));
+            RedisTool.hset("expresss:"+r.get("name"),"code",r.get("code"));
             RedisTool.sadd("expresss",r);
         }
         super.afterJFinalStart();

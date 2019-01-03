@@ -419,7 +419,7 @@ public class ShopService extends BaseService {
 
 
     public String logistics(String courier, String courierNumber) {
-        String key = RedisTool.hget("expresss:" + courier, "name");
+        String key = RedisTool.hget("expresss:" + courier, "code");
         String dataKey = key + "-" + courierNumber;
         String str = (String) RedisTool.getObject(dataKey);
         if (StrKit.notBlank(str)) {
@@ -428,5 +428,63 @@ public class ShopService extends BaseService {
         str = Kuaidi.getKuaiDiInfo(key, courierNumber);
         RedisTool.setexObject(dataKey, StaticPublic.SHOPEXPRESS, str);
         return str;
+    }
+    @Before(Tx.class)
+    public void saveAfterOrder(String orderNumber, String type, String content, String userId) {
+        Record r = Db.findFirst(Db.getSqlPara("shop.selectAterOrderByOrderNumber", orderNumber, userId));
+        if (null != r) {
+            throw new BusinessException("此订单已经存在售后");
+        }
+        try {
+            Db.update(Db.getSqlPara("shop.saveAfterOrder", IdGen.uuid(), orderNumber, type, content, userId));
+        }catch (Exception e){
+            throw new BusinessException("申请售后异常,请联系客服");
+        }
+    }
+
+    public Record orderDetail(String orderNumber, String userId) {
+        Record r=Db.findFirst(Db.getSqlPara("shop.userOrderDetailByOrderNumber",userId,orderNumber));
+        if(null==r){
+            throw new BusinessException("订单不存在");
+        }
+        List<Record> subList = Db.find(Db.getSqlPara("shop.userOrderDetailList", r.getStr("orderNumber"), userId));
+        for (Record s : subList) {
+            doImgPath(s);
+        }
+        r.set("subList", subList);
+
+        return r;
+    }
+        @Before(Tx.class)
+    public void cancelOrder(String orderNumber, String userId) {
+        Db.update(Db.getSqlPara("shop.cancelOrder",userId,orderNumber));
+    }
+
+    public Page<Record> afterOrderList(String userId, int pageNumber) {
+            SqlPara sqlPara = null;
+            Page<Record> records = null;
+            Kv cond = Kv.by("del", '0');
+            cond.set("userId", userId);
+            sqlPara = Db.getSqlPara("shop.afterOrderList", cond);
+            records = Db.paginate(pageNumber, StaticPublic.PAGESIZE, sqlPara);
+            List<Record> list = records.getList();
+            List<Record> subList = Lists.newArrayList();
+            for (Record r : list) {
+                if(r.getStr("state").equals("10")) {
+                    if (r.getStr("type").equals("2")) {
+                        r.set("state","12" );
+                    }
+                }
+                subList = Db.find(Db.getSqlPara("shop.userOrderDetailList", r.getStr("orderNumber"), userId));
+                for (Record s : subList) {
+                    doImgPath(s);
+                }
+                r.set("subList", subList);
+            }
+            return records;
+    }
+    @Before(Tx.class)
+    public void cancelAfterOrder(String afterOrderId, String userId) {
+        Db.update(Db.getSqlPara("shop.cancelAfterOrder",userId,afterOrderId));
     }
 }
