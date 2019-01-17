@@ -73,6 +73,48 @@ order by b.sort asc
 
 #end
 
+
+#sql("getSearchGoods")
+SELECT
+g.logo,
+g.id as goodId,
+g.`name`,
+g.price,
+g.sales
+from s_goods g
+where
+
+
+  g.del_flag=0
+and g.state=1
+
+#if(sk.notBlank(brandId))
+and g.brand_id=#para(brandId)
+ #end
+#if(sk.notBlank(content))
+and g.name like concat('%',#para(content),'%')
+ #end
+
+  #if(orderby.equals('1'))
+   ORDER BY g.sales desc
+
+
+   #elseif(orderby.equals('2'))
+   ORDER BY g.create_date desc
+
+  #elseif(orderby.equals('3'))
+   ORDER BY g.price asc
+
+  #elseif(orderby.equals('4'))
+   ORDER BY g.price desc
+  #end
+
+
+
+#end
+
+
+
 #sql("getCategoryGoods")
 SELECT
 g.logo,
@@ -82,10 +124,23 @@ g.price,
 g.sales
 from s_goods g ,s_goods_category gc
 where g.id=gc.goods_id
-and gc.category_id=#para(0)
+and gc.category_id=#para(categoryId)
 and g.del_flag=0
 and g.state=1
- ORDER BY g.create_date desc
+
+  #if(orderby.equals('1'))
+   ORDER BY g.sales desc
+
+
+   #elseif(orderby.equals('2'))
+   ORDER BY g.create_date desc
+
+  #elseif(orderby.equals('3'))
+   ORDER BY g.price asc
+
+  #elseif(orderby.equals('4'))
+   ORDER BY g.price desc
+  #end
 
 #end
 
@@ -327,7 +382,7 @@ from s_user_coupon p
 where p.coupon_id = #para(1)
   and p.user_id = #para(0)
   and p.state = 1
-  and p.full>=#para(2)
+  and p.full<=#para(2)
   and now() between p.begin_date and p.end_date
   #end
 
@@ -373,7 +428,11 @@ where  user_id=#para(0)
 and id=#para(1)
 #end
 
-
+#sql("hotData")
+select
+name
+from s_search_hot order by  num asc
+#end
 
 #sql("userOrderList")
 SELECT
@@ -394,14 +453,11 @@ and o.user_id=#para(userId)
  #if(sk.notBlank(type))
    #if(type.equals('10'))
      and o.state=#para(type)
-   #end
-    #if(type.equals('20'))
+    #elseif(type.equals('20'))
      and (o.state=20 or o.state=30 )
-   #end
-   #if(type.equals('50'))
+   #elseif(type.equals('50'))
      and o.state=#para(type)
-   #end
-    #if(type.equals('40'))
+    #elseif(type.equals('40'))
      and (o.state=40 or o.state=60 )
    #end
   #end
@@ -535,4 +591,44 @@ order by o.create_date desc
  delete from  s_order_after_sales
 where   id=#para(1)
 and  user_id=#para(0)
+#end
+
+#sql("afterOrderDetail")
+select
+s.id as afterOrderId,
+s.orderNumber,
+s.apply_time as applyTime,
+s.type,
+s.content,
+s.exchange_phone as exchangePhone,
+s.exchange_consignee as exchangeConsignee,
+s.exchange_address as exchangeAddress,
+s.exchange_invoice_no as exchangeInvoiceNo,
+s.exchange_express_name as exchangeExpressName,
+s.exchange_freight as exchangeFreight,
+s.exchange_time as exchangeTime,
+s.return_invoice_no as returnInvoiceNo,
+s.return_express_name as returnExpressName,
+s.return_phone as returnPhone,
+s.return_consignee as returnConsignee,
+s.return_address as returnAddress,
+s.return_time as returnTime,
+s.state,
+s.refuse_content as refuseContent,
+s.update_date as updateDate,
+return_amount as returnAmount
+from
+s_order_after_sales s
+where s.user_id=#para(0)
+and s.id=#para(1)
+#end
+
+#sql("returnExpress")
+update s_order_after_sales
+set return_time=now(),
+update_date=now(),
+return_invoice_no=#para(3),
+return_express_name=#para(2)
+where user_id=#para(0)
+and id=#para(1)
 #end

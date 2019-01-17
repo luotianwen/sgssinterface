@@ -68,9 +68,10 @@ public class ShopService extends BaseService {
         return cs;
     }
 
-    public Page<Record> getCategoryGoods(String categoryId, int pageNumber) {
-
-        Page<Record> page = Db.paginate(pageNumber, StaticPublic.PAGESIZE, Db.getSqlPara("shop.getCategoryGoods", categoryId));
+    public Page<Record> getCategoryGoods(String categoryId, int pageNumber, String orderby) {
+       Kv cond=Kv.by("categoryId",categoryId);
+       cond.set("orderby",orderby);
+        Page<Record> page = Db.paginate(pageNumber, StaticPublic.PAGESIZE, Db.getSqlPara("shop.getCategoryGoods", cond));
         for (Record r : page.getList()
         ) {
             doImgPath(r);
@@ -328,7 +329,7 @@ public class ShopService extends BaseService {
         DecimalFormat df = new DecimalFormat("#0.00");
         String total = df.format(product + freight - coupon);
 
-        //deleteCart(userId,cartIds);
+         deleteCart(userId,cartIds);
         Kv cond = Kv.by("user_id", userId);
         String orderId = IdGen.uuid();
         String orderNumber = IdGen.getOrderIdByUUId();
@@ -486,5 +487,37 @@ public class ShopService extends BaseService {
     @Before(Tx.class)
     public void cancelAfterOrder(String afterOrderId, String userId) {
         Db.update(Db.getSqlPara("shop.cancelAfterOrder",userId,afterOrderId));
+    }
+
+    public Record afterOrderDetail(String userId, String afterOrderId) {
+        Record r=Db.findFirst(Db.getSqlPara("shop.afterOrderDetail",userId,afterOrderId));
+
+        return r;
+    }
+
+    public List<Record> getExpress() {
+        List<Record> shopexpress= Db.find(Db.getSqlPara("shop.expresss"));
+        return shopexpress;
+    }
+    @Before(Tx.class)
+    public void returnExpress(String userId, String afterOrderId, String returnInvoiceNo, String returnExpressName) {
+        Db.update(Db.getSqlPara("shop.returnExpress",userId,afterOrderId,returnExpressName,returnInvoiceNo));
+
+    }
+
+    public List<Record> hotData() {
+        return  Db.find(Db.getSqlPara("shop.hotData"));
+    }
+
+    public Page<Record> getSearchGoods(String brandId, String content, int pageNumber, String orderby) {
+        Kv cond=Kv.by("brandId",brandId);
+        cond.set("content",content);
+        cond.set("orderby",orderby);
+        Page<Record> page = Db.paginate(pageNumber, StaticPublic.PAGESIZE, Db.getSqlPara("shop.getSearchGoods", cond));
+        for (Record r : page.getList()
+        ) {
+            doImgPath(r);
+        }
+        return page;
     }
 }

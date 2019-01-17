@@ -17,11 +17,14 @@ fileServer=http://localhost:8082
 
 userfiles.basedir=D:\cc
 
-
+d.accessKeyId=LTAIX9hWdyYmMdHA
+d.accessKeySecret=F8dRBfYoFkmikqZti1Y97M7f0KMENb
+d.SignName=乐小转
 
 weixin.AppID=wx9dd950d3bf8accaf
 weixin.MCHID=1486715192
 weixin.KEY=3FA1AFBE088A8A2AD25EAAB95D63748B
 weixin.ip=47.104.12.34
 weixin.notifyUrl=https://www.abc.com/v1/shop/weixinnotify
+weixin.AppSecret=bec973a1ef168477006ade3fef1a70ab
 

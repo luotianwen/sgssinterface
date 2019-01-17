@@ -9,6 +9,16 @@ import java.io.IOException;
 public class WeiXin {
 
 
+    public static  WeiXinXCXUserInfo xcxlogin(String code) throws IOException {
+        String url="https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code";
+        url=url.replace("JSCODE",code).replace("APPID",PropKit.get("weixin.AppID"))
+                .replace("SECRET",PropKit.get("weixin.AppSecret"));
+        String data= HttpKit.get(url);
+        ObjectMapper mapper = new ObjectMapper();
+        WeiXinXCXUserInfo wd = mapper.readValue(data, WeiXinXCXUserInfo.class);
+        //WeiXinData wd=JsonKit.parse(data,WeiXinData.class);
+        return  wd;
+    }
 
     public static  WeiXinData weixinlogin(String code) throws IOException {
         String url="https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code";
