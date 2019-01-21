@@ -1,6 +1,7 @@
 package com.sgss.www.shop.controller;
 
 import com.jfinal.aop.Inject;
+import com.jfinal.kit.HttpKit;
 import com.jfinal.kit.PropKit;
 import com.jfinal.log.Log;
 import com.jfinal.plugin.activerecord.Page;
@@ -13,10 +14,13 @@ import com.sgss.www.shop.service.ShopService;
 import com.sgss.www.swagger.annotation.*;
 import net.arccode.wechat.pay.api.common.exception.WXPayApiException;
 import net.arccode.wechat.pay.api.common.util.*;
+import net.arccode.wechat.pay.api.protocol.pay_notify.PayNotifyResponse;
 import net.arccode.wechat.pay.api.protocol.unified_order.UnifiedOrderRequest;
 import net.arccode.wechat.pay.api.protocol.unified_order.UnifiedOrderResponse;
 import net.arccode.wechat.pay.api.service.WXPayClient;
+import org.dom4j.DocumentException;
 
+import java.io.IOException;
 import java.util.List;
 
 @Api(tag = "shop", description = "电商")
@@ -54,7 +58,7 @@ public class ShopController extends BaseController {
         //优惠券
         returnData.set("coupons", shopService.getCoupons());
         //品牌
-        returnData.set("brands", shopService.getBrands());
+        returnData.set("brands", shopService.getBrands(1));
         r.setData(returnData);
         renderJson(r);
     }
@@ -67,7 +71,7 @@ public class ShopController extends BaseController {
     })
     public void brandList() {
         ReqResponse<List<Record>> r = new ReqResponse();
-        r.setData( shopService.getBrands());
+        r.setData( shopService.getBrands(0));
         renderJson(r);
     }
     @ApiOperation(url = "/v1/shop/goodsList", tag = "shop", httpMethod = "post", description = "首页商品数据")
@@ -482,13 +486,15 @@ public class ShopController extends BaseController {
                     String appid = PropKit.get("weixin.AppID");
                     noncestr = SDKUtils.genRandomStringByLength(32);
                     String package1 = "prepay_id=" + response.getPrepayId();
-                    long timeStamp = System.currentTimeMillis() / 1000;
+                    String timeStamp = (System.currentTimeMillis() / 1000)+"";
                     record.set("timeStamp", timeStamp);
                     record.set("nonceStr", noncestr);
                     record.set("package", package1);
+                    record.set("signType", "MD5");
                     RequestParametersHolder requestParametersHolder = new RequestParametersHolder();
                     ACHashMap acHashMap = new ACHashMap();
                     acHashMap.put("appId", appid);
+                    acHashMap.put("signType", "MD5");
                     acHashMap.put("package", package1);
                     acHashMap.put("nonceStr", noncestr);
                     acHashMap.put("timeStamp", timeStamp);
@@ -522,7 +528,45 @@ public class ShopController extends BaseController {
         renderJson(r);
     }
 
+    @ApiOperation(url = "/v1/pay/weixinnotify", tag = "pay", httpMethod = "post", description = "微信异步通知")
 
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = " "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+
+    public void weixinnotify() throws IOException, DocumentException, WXPayApiException {
+        System.out.print("微信支付回调获取数据开始");
+        log.debug("微信支付回调获取数据开始");
+        String notifyTxt = HttpKit.readData(getRequest());
+        log.debug("微信支付回调获取数据" + notifyTxt);
+        System.out.println("notifyTxtnotifyTxtnotifyTxtnotifyTxt" + notifyTxt);
+        WXPayClient wxPayClient = new WXPayClient(PropKit.get("weixin.AppID"), PropKit.get("weixin.MCHID"), PropKit.get("weixin.KEY"));
+        PayNotifyResponse response = wxPayClient.parseNotify(notifyTxt, PayNotifyResponse.class);
+        String text;
+        if ("SUCCESS".equals(response.getResultCode()) && "SUCCESS".equals(response.getReturnCode())) {
+            text = "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
+            int totalFee = response.getTotalFee();
+            String attachs[] = response.getAttach().split("-");
+            String type = attachs[0];// 1乐购订单 2app充值 3后台充值4游戏订单5游戏充值
+            String ordersId = attachs[1];
+            String transaction_id = response.getTransactionId();
+            System.out.println(response.getAttach());
+            int totalFee2 = shopService.getTotalFeeByOrderId(type, ordersId);
+            if (totalFee != totalFee2) {
+                text = "<xml><return_code><![CDATA[ERROR]]></return_code> <return_msg><![CDATA[NO]]></return_msg></xml>";
+            } else {
+                shopService.updateState(type, transaction_id, ordersId);
+            }
+
+        } else {
+            text = "<xml><return_code><![CDATA[ERROR]]></return_code> <return_msg><![CDATA[NO]]></return_msg></xml>";
+        }
+
+        renderText(text);
+    }
     @ApiOperation(url = "/v1/shop/logistics", tag = "shop", httpMethod = "post", description = "物流信息")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),

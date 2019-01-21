@@ -30,9 +30,19 @@ from s_brand b
 where b.del_flag=0
 and b.state=1
 order by b.sort asc
-limit 8
+limit 12
 #end
 
+#sql("getBrandsList")
+select
+b.id as "brandId",
+name,
+logo
+from s_brand b
+where b.del_flag=0
+and b.state=1
+order by b.sort asc
+#end
 
 #sql("goodsList")
 select
@@ -362,7 +372,18 @@ and c.id=#para(1)
   , #para(pay_type), #para(couponId), #para(province_id), #para(city_id)
   , #para(area_id));
 #end
-
+#sql("getTotalPriceById")
+select total_price*100 as  price from s_order
+where orderNumber=#para(0)
+#end
+#sql("updateOrderPayInfoTransactionid")
+update s_order
+set pay_time=now() ,
+transactionid=#para(1),
+state=20
+where orderNumber=#para(0)
+and state=10
+#end
 
  #sql("getMyCouponsCount")
 SELECT

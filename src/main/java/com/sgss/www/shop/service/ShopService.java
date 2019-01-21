@@ -32,8 +32,15 @@ public class ShopService extends BaseService {
         return coupons;
     }
 
-    public List<Record> getBrands() {
-        List<Record> coupons = Db.find(Db.getSqlPara("shop.getBrands"));
+    public List<Record> getBrands(int i) {
+
+        List<Record> coupons = null;
+        if (i == 1) {
+            coupons = Db.find(Db.getSqlPara("shop.getBrands"));
+        } else {
+            coupons = Db.find(Db.getSqlPara("shop.getBrandsList"));
+        }
+
         for (Record c : coupons
         ) {
             doImgPath(c);
@@ -69,8 +76,8 @@ public class ShopService extends BaseService {
     }
 
     public Page<Record> getCategoryGoods(String categoryId, int pageNumber, String orderby) {
-       Kv cond=Kv.by("categoryId",categoryId);
-       cond.set("orderby",orderby);
+        Kv cond = Kv.by("categoryId", categoryId);
+        cond.set("orderby", orderby);
         Page<Record> page = Db.paginate(pageNumber, StaticPublic.PAGESIZE, Db.getSqlPara("shop.getCategoryGoods", cond));
         for (Record r : page.getList()
         ) {
@@ -329,7 +336,7 @@ public class ShopService extends BaseService {
         DecimalFormat df = new DecimalFormat("#0.00");
         String total = df.format(product + freight - coupon);
 
-         deleteCart(userId,cartIds);
+        deleteCart(userId, cartIds);
         Kv cond = Kv.by("user_id", userId);
         String orderId = IdGen.uuid();
         String orderNumber = IdGen.getOrderIdByUUId();
@@ -406,16 +413,18 @@ public class ShopService extends BaseService {
     }
 
     public int getTotalFeeByOrderId(String type, String ordersId) {
-        return 1;
+        int price = Db.findFirst(Db.getSqlPara("shop.getTotalPriceById", ordersId)).getInt("price");
+        return price;
     }
 
     @Before(Tx.class)
     public void orderOk(String userId, String ordersId) {
-        Db.update(Db.getSqlPara("shop.orderOk",userId,ordersId));
+        Db.update(Db.getSqlPara("shop.orderOk", userId, ordersId));
     }
+
     @Before(Tx.class)
     public void orderDelete(String userId, String ordersId) {
-        Db.update(Db.getSqlPara("shop.orderDelete",userId,ordersId));
+        Db.update(Db.getSqlPara("shop.orderDelete", userId, ordersId));
     }
 
 
@@ -430,6 +439,7 @@ public class ShopService extends BaseService {
         RedisTool.setexObject(dataKey, StaticPublic.SHOPEXPRESS, str);
         return str;
     }
+
     @Before(Tx.class)
     public void saveAfterOrder(String orderNumber, String type, String content, String userId) {
         Record r = Db.findFirst(Db.getSqlPara("shop.selectAterOrderByOrderNumber", orderNumber, userId));
@@ -438,14 +448,14 @@ public class ShopService extends BaseService {
         }
         try {
             Db.update(Db.getSqlPara("shop.saveAfterOrder", IdGen.uuid(), orderNumber, type, content, userId));
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new BusinessException("申请售后异常,请联系客服");
         }
     }
 
     public Record orderDetail(String orderNumber, String userId) {
-        Record r=Db.findFirst(Db.getSqlPara("shop.userOrderDetailByOrderNumber",userId,orderNumber));
-        if(null==r){
+        Record r = Db.findFirst(Db.getSqlPara("shop.userOrderDetailByOrderNumber", userId, orderNumber));
+        if (null == r) {
             throw new BusinessException("订单不存在");
         }
         List<Record> subList = Db.find(Db.getSqlPara("shop.userOrderDetailList", r.getStr("orderNumber"), userId));
@@ -456,68 +466,76 @@ public class ShopService extends BaseService {
 
         return r;
     }
-        @Before(Tx.class)
+
+    @Before(Tx.class)
     public void cancelOrder(String orderNumber, String userId) {
-        Db.update(Db.getSqlPara("shop.cancelOrder",userId,orderNumber));
+        Db.update(Db.getSqlPara("shop.cancelOrder", userId, orderNumber));
     }
 
     public Page<Record> afterOrderList(String userId, int pageNumber) {
-            SqlPara sqlPara = null;
-            Page<Record> records = null;
-            Kv cond = Kv.by("del", '0');
-            cond.set("userId", userId);
-            sqlPara = Db.getSqlPara("shop.afterOrderList", cond);
-            records = Db.paginate(pageNumber, StaticPublic.PAGESIZE, sqlPara);
-            List<Record> list = records.getList();
-            List<Record> subList = Lists.newArrayList();
-            for (Record r : list) {
-                if(r.getStr("state").equals("10")) {
-                    if (r.getStr("type").equals("2")) {
-                        r.set("state","12" );
-                    }
+        SqlPara sqlPara = null;
+        Page<Record> records = null;
+        Kv cond = Kv.by("del", '0');
+        cond.set("userId", userId);
+        sqlPara = Db.getSqlPara("shop.afterOrderList", cond);
+        records = Db.paginate(pageNumber, StaticPublic.PAGESIZE, sqlPara);
+        List<Record> list = records.getList();
+        List<Record> subList = Lists.newArrayList();
+        for (Record r : list) {
+            if (r.getStr("state").equals("10")) {
+                if (r.getStr("type").equals("2")) {
+                    r.set("state", "12");
                 }
-                subList = Db.find(Db.getSqlPara("shop.userOrderDetailList", r.getStr("orderNumber"), userId));
-                for (Record s : subList) {
-                    doImgPath(s);
-                }
-                r.set("subList", subList);
             }
-            return records;
+            subList = Db.find(Db.getSqlPara("shop.userOrderDetailList", r.getStr("orderNumber"), userId));
+            for (Record s : subList) {
+                doImgPath(s);
+            }
+            r.set("subList", subList);
+        }
+        return records;
     }
+
     @Before(Tx.class)
     public void cancelAfterOrder(String afterOrderId, String userId) {
-        Db.update(Db.getSqlPara("shop.cancelAfterOrder",userId,afterOrderId));
+        Db.update(Db.getSqlPara("shop.cancelAfterOrder", userId, afterOrderId));
     }
 
     public Record afterOrderDetail(String userId, String afterOrderId) {
-        Record r=Db.findFirst(Db.getSqlPara("shop.afterOrderDetail",userId,afterOrderId));
+        Record r = Db.findFirst(Db.getSqlPara("shop.afterOrderDetail", userId, afterOrderId));
 
         return r;
     }
 
     public List<Record> getExpress() {
-        List<Record> shopexpress= Db.find(Db.getSqlPara("shop.expresss"));
+        List<Record> shopexpress = Db.find(Db.getSqlPara("shop.expresss"));
         return shopexpress;
     }
+
     @Before(Tx.class)
     public void returnExpress(String userId, String afterOrderId, String returnInvoiceNo, String returnExpressName) {
-        Db.update(Db.getSqlPara("shop.returnExpress",userId,afterOrderId,returnExpressName,returnInvoiceNo));
+        Db.update(Db.getSqlPara("shop.returnExpress", userId, afterOrderId, returnExpressName, returnInvoiceNo));
 
     }
 
     public List<Record> hotData() {
-        return  Db.find(Db.getSqlPara("shop.hotData"));
+        return Db.find(Db.getSqlPara("shop.hotData"));
     }
 
     public Page<Record> getSearchGoods(String brandId, String content, int pageNumber, String orderby) {
-        Kv cond=Kv.by("brandId",brandId);
-        cond.set("content",content);
-        cond.set("orderby",orderby);
+        Kv cond = Kv.by("brandId", brandId);
+        cond.set("content", content);
+        cond.set("orderby", orderby);
         Page<Record> page = Db.paginate(pageNumber, StaticPublic.PAGESIZE, Db.getSqlPara("shop.getSearchGoods", cond));
         for (Record r : page.getList()
         ) {
             doImgPath(r);
         }
         return page;
+    }
+
+    @Before(Tx.class)
+    public void updateState(String type, String transaction_id, String ordersId) {
+        Db.update(Db.getSqlPara("shop.updateOrderPayInfoTransactionid", ordersId, transaction_id));
     }
 }

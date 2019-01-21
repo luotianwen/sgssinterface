@@ -118,8 +118,8 @@ SELECT
   c.id as couponId,
 	c.begin_date AS beginDate,
 	c.end_date AS endDate,
-	u.`full`,
-	u.reduction
+	c.`full`,
+	c.reduction
 FROM
 	  s_coupon c
   where  c.id=#para(0)
