@@ -228,6 +228,10 @@ public class UserService extends BaseService {
        if(i==0){
            throw new BusinessException("优惠券已领完");
        }
-       Db.update(Db.getSqlPara("user.gainCouponById",r));
+       try {
+           Db.update(Db.getSqlPara("user.gainCouponById", r));
+       }catch (Exception e){
+           throw new BusinessException("领取优惠券失败");
+       }
     }
 }
