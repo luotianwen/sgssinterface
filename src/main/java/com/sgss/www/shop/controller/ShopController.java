@@ -528,7 +528,7 @@ public class ShopController extends BaseController {
         renderJson(r);
     }
 
-    @ApiOperation(url = "/v1/pay/weixinnotify", tag = "pay", httpMethod = "post", description = "微信异步通知")
+    @ApiOperation(url = "/v1/shop/weixinnotify", tag = "shop", httpMethod = "post", description = "微信异步通知")
 
     @ApiResponses({
             @ApiResponse(code = 200, message = "成功", responseHeaders = {

@@ -94,8 +94,13 @@ public class ShopService extends BaseService {
             String[] imgs = r.getStr("imgs").split("\\|");
             for (String i : imgs
             ) {
-                if (StrKit.notBlank(i) && i.indexOf("http") < 0) {
-                    imgss.add(PropKit.get("fileServer") + i);
+                if (StrKit.notBlank(i) ) {
+                    if(i.indexOf("http") < 0) {
+                        imgss.add(PropKit.get("fileServer") + i);
+                    }
+                    else{
+                        imgss.add(i);
+                    }
                 }
             }
         }

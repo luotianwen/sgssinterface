@@ -58,6 +58,18 @@ order by b.create_date desc
 
 #end
 
+#sql("updateGoods")
+update s_goods set imgs=#para(1) where id=#para(0)
+#end
+
+#sql("goodsPicList")
+select
+logo
+from s_goods_pic b
+where goods_id=#para(0)
+
+#end
+
 
 #sql("allCategory")
 select

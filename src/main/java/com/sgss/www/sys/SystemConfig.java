@@ -32,6 +32,22 @@ public class SystemConfig  extends JFinalConfig {
             RedisTool.hset("expresss:"+r.get("name"),"code",r.get("code"));
             RedisTool.sadd("expresss",r);
         }
+       /* List<Record> goods=Db.find(Db.getSqlPara("shop.goodsList"));
+        List<Record> pics=null;
+        String p="";
+        for(Record r:goods){
+            p="";
+            pics=Db.find(Db.getSqlPara("shop.goodsPicList",r.getStr("goodsId")));
+            if(null!=pics&&pics.size()>0){
+                for (Record pic:pics){
+                    p="|"+pic.getStr("logo");
+                }
+            }
+            if(StrKit.notBlank(p)){
+                Db.update(Db.getSqlPara("shop.updateGoods",r.getStr("goodsId"),p));
+            }
+        }*/
+
         super.afterJFinalStart();
     }
 
