@@ -105,7 +105,9 @@ public class ShopService extends BaseService {
             }
         }
         String descript = r.getStr("details");
-        descript = descript.replaceAll("/userfiles/", PropKit.get("fileServer") + "/userfiles/");
+        if(StrKit.notBlank(descript)) {
+            descript=JsoupJavaUtils.replaceImgStyle(descript);
+        }
         r.set("details", descript);
 
         r.set("images", imgss);
