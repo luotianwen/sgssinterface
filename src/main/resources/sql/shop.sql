@@ -544,7 +544,7 @@ orderNumber=#para(1)
 #sql("cancelOrder")
 update s_order
 set state=40,
-update=now()
+update_date=now()
 where
 user_id=#para(0)
 and
