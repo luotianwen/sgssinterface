@@ -674,7 +674,7 @@ and id=#para(1)
 
 #sql("weixinreturn")
 update s_order_after_sales
-set return_amount=#para(1),
+set return_amount=return_amount+#para(1),
 refund_time=now(),
 refund_state=1,
 refund_id=#para(3),

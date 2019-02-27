@@ -552,7 +552,7 @@ public class ShopService extends BaseService {
     }
     @Before(Tx.class)
     public void weixinreturn(String orderNumber, RefundResponse response) {
-        Db.update(Db.getSqlPara("shop.weixinreturn",orderNumber, response.getTotalFee(), response.getOutRefundNo(),response.getRefundId()));
+        Db.update(Db.getSqlPara("shop.weixinreturn",orderNumber, response.getRefundFee(), response.getOutRefundNo(),response.getRefundId()));
 
     }
 }
