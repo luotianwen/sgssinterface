@@ -11,6 +11,7 @@ import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.plugin.activerecord.tx.Tx;
 import com.sgss.www.conmon.*;
+import net.arccode.wechat.pay.api.protocol.refund.RefundResponse;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -542,7 +543,16 @@ public class ShopService extends BaseService {
     }
 
     @Before(Tx.class)
-    public void updateState(String type, String transaction_id, String ordersId) {
-        Db.update(Db.getSqlPara("shop.updateOrderPayInfoTransactionid", ordersId, transaction_id));
+    public void updateState(String type, String transaction_id, String ordersId, String outTradeNo) {
+        Db.update(Db.getSqlPara("shop.updateOrderPayInfoTransactionid", ordersId, transaction_id,outTradeNo));
+    }
+
+    public Record getOrderInfoById(String orderNumber) {
+        return Db.findFirst(Db.getSqlPara("shop.getOrderInfoById", orderNumber));
+    }
+    @Before(Tx.class)
+    public void weixinreturn(String orderNumber, RefundResponse response) {
+        Db.update(Db.getSqlPara("shop.weixinreturn",orderNumber, response.getTotalFee(), response.getOutRefundNo(),response.getRefundId()));
+
     }
 }

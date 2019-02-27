@@ -27,4 +27,6 @@ weixin.KEY=3FA1AFBE088A8A2AD25EAAB95D63748B
 weixin.ip=47.104.12.34
 weixin.notifyUrl=https://www.abc.com/v1/shop/weixinnotify
 weixin.AppSecret=bec973a1ef168477006ade3fef1a70ab
+weixin.Cert=D:/weixincert/apiclient_cert.p12
+weixin.CertPwd=1486715192
 

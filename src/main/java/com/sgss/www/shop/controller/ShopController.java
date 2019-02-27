@@ -15,6 +15,8 @@ import com.sgss.www.swagger.annotation.*;
 import net.arccode.wechat.pay.api.common.exception.WXPayApiException;
 import net.arccode.wechat.pay.api.common.util.*;
 import net.arccode.wechat.pay.api.protocol.pay_notify.PayNotifyResponse;
+import net.arccode.wechat.pay.api.protocol.refund.RefundRequest;
+import net.arccode.wechat.pay.api.protocol.refund.RefundResponse;
 import net.arccode.wechat.pay.api.protocol.unified_order.UnifiedOrderRequest;
 import net.arccode.wechat.pay.api.protocol.unified_order.UnifiedOrderResponse;
 import net.arccode.wechat.pay.api.service.WXPayClient;
@@ -550,15 +552,15 @@ public class ShopController extends BaseController {
             text = "<xml><return_code><![CDATA[SUCCESS]]></return_code> <return_msg><![CDATA[OK]]></return_msg></xml>";
             int totalFee = response.getTotalFee();
             String attachs[] = response.getAttach().split("-");
-            String type = attachs[0];// 1乐购订单 2app充值 3后台充值4游戏订单5游戏充值
+            String type = attachs[0];// 1 订单
             String ordersId = attachs[1];
             String transaction_id = response.getTransactionId();
-            System.out.println(response.getAttach());
+            String outTradeNo=response.getOutTradeNo();
             int totalFee2 = shopService.getTotalFeeByOrderId(type, ordersId);
             if (totalFee != totalFee2) {
                 text = "<xml><return_code><![CDATA[ERROR]]></return_code> <return_msg><![CDATA[NO]]></return_msg></xml>";
             } else {
-                shopService.updateState(type, transaction_id, ordersId);
+                shopService.updateState(type, transaction_id, ordersId,outTradeNo);
             }
 
         } else {
@@ -566,6 +568,92 @@ public class ShopController extends BaseController {
         }
 
         renderText(text);
+    }
+    @ApiOperation(url = "/v1/shop/weixinreturn", tag = "shop", httpMethod = "post", description = "微信退款申请")
+    @Params({
+            @Param(name = "orderNumber", description = "订单号", required = true, dataType = "string"),
+            @Param(name = "refundFee", description = "退款金额", required = true, dataType = "string"),
+            @Param(name = "flag", description = "系统来源", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = " "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void weixinreturn() {
+        String orderNumber=getPara("orderNumber");
+        int refundFee=getParaToInt("refundFee");
+        String flag=getPara("flag");
+        RefundResponse response = null;
+        ReqResponse<String> r = new ReqResponse();
+        Record order = shopService.getOrderInfoById( orderNumber);
+        int totalFee=order.getInt("price");
+        String outTradeNo=order.getStr("outTradeNo");
+        if(!flag.equals("yoyound123")){
+            r.setCode(1);
+            renderJson(r);
+        }else {
+            String nonceStr = SDKUtils.genRandomStringByLength(32);
+            String outRefundNo = SDKUtils.genOutRefundNo();
+            RefundRequest request = new RefundRequest(outTradeNo,
+                    outRefundNo, totalFee, refundFee, "11", nonceStr);
+            WXPayClient wxPayClient = new WXPayClient(PropKit.get("weixin.AppID"), PropKit.get("weixin.MCHID"), PropKit.get("weixin.KEY"), PropKit.get("weixin.CertPwd"), PropKit.get("weixin.Cert"));
+
+            try {
+                response = wxPayClient.execute(request);
+                /**
+                 * "cashFee": null,
+                 *     "refundFee": null,
+                 *     "couponRefundId": null,
+                 *     "sign": "3A488E5521BA3F6B20CCC6E37A97D568",
+                 *     "resultCode": "FAIL",
+                 *     "body": "<xml><return_code><![CDATA[SUCCESS]]></return_code>\n<return_msg><![CDATA[OK]]></return_msg>\n<appid><![CDATA[wx9dd950d3bf8accaf]]></appid>\n<mch_id><![CDATA[1486715192]]></mch_id>\n<nonce_str><![CDATA[K1c1fBvNOcp6iJsF]]></nonce_str>\n<sign><![CDATA[3A488E5521BA3F6B20CCC6E37A97D568]]></sign>\n<result_code><![CDATA[FAIL]]></result_code>\n<err_code><![CDATA[ERROR]]></err_code>\n<err_code_des><![CDATA[订单已全额退款]]></err_code_des>\n</xml>",
+                 *     "couponRefundFee": null,
+                 *     "returnCode": "SUCCESS",
+                 *     "errCodeDes": "订单已全额退款",
+                 *     "cashRefundFee": null,
+                 *     "appId": "wx9dd950d3bf8accaf",
+                 *     "outTradeNo": null,
+                 *     "outRefundNo": null,
+                 *     "mchId": "1486715192",
+                 *     "refundChannel": null,
+                 *     "feeType": null,
+                 *     "params": {
+                 *       "op_user_id": "11",
+                 *       "nonce_str": "v63wncwrs2rjzftrqnwzrpxxdu3qvfgi",
+                 *       "out_trade_no": "T19022511220708578346303",
+                 *       "out_refund_no": "R19022710495610546022841",
+                 *       "total_fee": "1",
+                 *       "refund_fee": "1",
+                 *       "appid": "wx9dd950d3bf8accaf",
+                 *       "sign": "d86df7fe0a5d8235349bb226b9ae9989",
+                 *       "mch_id": "1486715192"
+                 *     },
+                 *     "deviceInfo": null,
+                 *     "nonceStr": "K1c1fBvNOcp6iJsF",
+                 *     "transactionId": null,
+                 *     "couponRefundCount": null,
+                 *     "returnMsg": "OK",
+                 *     "totalFee": null,
+                 *     "errCode": "ERROR",
+                 *     "success": true,
+                 *     "refundId": null
+                 */
+                if(response.getResultCode().equals("FAIL")){
+                    r.setCode(1);
+                    r.setData(response.getErrCodeDes());
+                }
+                else {
+                    shopService.weixinreturn(orderNumber, response);
+                    r.setData("成功");
+                }
+            } catch (WXPayApiException e) {
+                e.printStackTrace();
+            }
+
+            renderJson(r);
+        }
     }
     @ApiOperation(url = "/v1/shop/logistics", tag = "shop", httpMethod = "post", description = "物流信息")
     @Params({

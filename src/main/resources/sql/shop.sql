@@ -388,10 +388,15 @@ and c.id=#para(1)
 select total_price*100 as  price from s_order
 where orderNumber=#para(0)
 #end
+#sql("getOrderInfoById")
+select total_price*100 as  price ,outTradeNo  from s_order
+where orderNumber=#para(0)
+#end
 #sql("updateOrderPayInfoTransactionid")
 update s_order
 set pay_time=now() ,
 transactionid=#para(1),
+outTradeNo=#para(2),
 state=20
 where orderNumber=#para(0)
 and state=10
@@ -664,4 +669,15 @@ return_invoice_no=#para(3),
 return_express_name=#para(2)
 where user_id=#para(0)
 and id=#para(1)
+#end
+
+
+#sql("weixinreturn")
+update s_order_after_sales
+set return_amount=#para(1),
+refund_time=now(),
+refund_state=1,
+refund_id=#para(3),
+out_refund_no=#para(2)
+where orderNumber=#para(0)
 #end
