@@ -455,6 +455,7 @@ public class ShopService extends BaseService {
             throw new BusinessException("此订单已经存在售后");
         }
         try {
+            Db.update(Db.getSqlPara("shop.updateOrderRefundState",  orderNumber ));
             Db.update(Db.getSqlPara("shop.saveAfterOrder", IdGen.uuid(), orderNumber, type, content, userId));
         } catch (Exception e) {
             throw new BusinessException("申请售后异常,请联系客服");
@@ -553,6 +554,7 @@ public class ShopService extends BaseService {
     @Before(Tx.class)
     public void weixinreturn(String orderNumber, RefundResponse response) {
         Db.update(Db.getSqlPara("shop.weixinreturn",orderNumber, response.getRefundFee(), response.getOutRefundNo(),response.getRefundId()));
+        Db.update(Db.getSqlPara("shop.saleslog",IdGen.uuid(),orderNumber, response.getRefundFee(), response.getOutRefundNo(),response.getRefundId()));
 
     }
 }

@@ -481,9 +481,8 @@ express_name as expressName ,
 invoice_no as invoiceNo,
 now() AS currentTime,
 o.state,
-s.id as "salesId"
+o.refund_state as "salesId"
 from  s_order o
-left join s_order_after_sales s on s.orderNumber=o.orderNumber
 where o.del_flag=0
  #if(sk.notBlank(userId))
 and o.user_id=#para(userId)
@@ -580,9 +579,10 @@ and  s.del_flag=0
   VALUES (#para(0), now(),0, #para(1), now(), #para(2)
   , #para(3), #para(4) ,'10');
 #end
-
-
-
+#sql("updateOrderRefundState")
+update s_order set refund_state=1
+where orderNumber=#para(0)
+#end
 
 #sql("userOrderDetailByOrderNumber")
 SELECT
@@ -680,4 +680,12 @@ refund_state=1,
 refund_id=#para(3),
 out_refund_no=#para(2)
 where orderNumber=#para(0)
+#end
+
+#sql("saleslog")
+
+INSERT INTO s_order_after_sales_log
+  (id,create_date,del_flag, orderNumber,return_amount,out_refund_no,refund_id
+  )
+  VALUES (#para(0), now(),0, #para(1),  #para(2)  , #para(3), #para(4) );
 #end
