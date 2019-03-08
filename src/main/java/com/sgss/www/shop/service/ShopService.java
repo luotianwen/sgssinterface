@@ -557,4 +557,25 @@ public class ShopService extends BaseService {
         Db.update(Db.getSqlPara("shop.saleslog",IdGen.uuid(),orderNumber, response.getRefundFee(), response.getOutRefundNo(),response.getRefundId()));
 
     }
+
+    public List<Record> getAgentStock(String userId, String articleno) {
+        Record r=Db.findFirst(Db.getSqlPara("user.getAgent",userId));
+        if(null==r){
+            return null;
+        }
+        r=Db.findFirst(Db.getSqlPara("user.getDiscount",userId));
+        if(null==r){
+            return null;
+        }
+       double discount=r.getDouble("discount");
+       if(discount==0){
+           return  null;
+       }
+        return Db.find(Db.getSqlPara("shop.getDiscount",articleno,discount));
+
+    }
+
+    public List<Record> getWeixin() {
+        return  Db.find(Db.getSqlPara("shop.getWeixin"));
+    }
 }

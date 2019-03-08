@@ -38,8 +38,8 @@ where id=#para(0)
 
 #end
 #sql("saveUser")
- INSERT INTO s_user (id,create_date,del_flag,openId, name,head_img,integral,nickname,state)
-     VALUES (#para(0), now(),0,#para(1),#para(2),#para(3),0,#para(2),1);
+ INSERT INTO s_user (id,create_date,del_flag,openId, name,head_img,integral,nickname,state,agentId)
+     VALUES (#para(0), now(),0,#para(1),#para(2),#para(3),0,#para(2),1,#para(4));
 #end
 
 
@@ -158,4 +158,23 @@ INSERT INTO s_feedback_img (id,feedback_id,img_src,create_date,del_flag) VALUE (
   (select count(c.id) from s_order c where c.user_id=#para(0) and c.state=10 )  as orders,
   (select count(c.id) from s_order_after_sales c where c.user_id=#para(0) and c.state=10 )  as afterOrders
  from dual
+#end
+
+#sql("getUserAgentData")
+select
+state as vshow
+from s_agent
+where userid=#para(0)
+#end
+
+#sql("saveUserAgentData")
+INSERT INTO s_agent (id,userid,mobile,create_date,del_flag,state,name) VALUE (#para(0),#para(1),#para(2),now(),0,2,#para(3))
+#end
+
+#sql("getAgent")
+select id from s_agent where userid=#para(0)
+#end
+#sql("getDiscount")
+select d.discount as discount  from s_agent s,s_discount d where s.userid=#para(0)
+and d.id=s.discountId
 #end

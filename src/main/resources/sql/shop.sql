@@ -689,3 +689,24 @@ INSERT INTO s_order_after_sales_log
   )
   VALUES (#para(0), now(),0, #para(1),  #para(2)  , #para(3), #para(4) );
 #end
+
+
+#sql("getDiscount")
+select
+brandName,
+articleno,
+marketprice,
+(discount+#para(1)) as discount
+from s_stock s
+where s.articleno=#para(0)
+#end
+
+
+#sql("getWeixin")
+select
+name,
+url
+from s_weixin s
+order by s.create_date desc
+limit 3
+#end

@@ -16,7 +16,7 @@ import java.util.List;
 
 public class UserService extends BaseService {
     @Before(Tx.class)
-    public Record weixinlogin( String nickName,String code,String avatarUrl) {
+    public Record weixinlogin(String nickName, String code, String avatarUrl, String agentId) {
         WeiXinXCXUserInfo wd = null;
         try {
             wd = WeiXin.xcxlogin(code);
@@ -26,9 +26,19 @@ public class UserService extends BaseService {
         }
         String openId=wd.getOpenid();
         Record record=getUserInfoByOpenId(openId);
+        String dlId="";
         //没有用户
         if(null==record){
-            Db.update(Db.getSqlPara("user.saveUser", IdGen.uuid(),openId,nickName,avatarUrl));
+            //查找代理
+            if(StrKit.notBlank(agentId)){
+                String agentId2= (String) RedisTool.getObject(agentId);
+                Record record2=Db.findFirst(Db.getSqlPara("user.getAgent",agentId2));
+                //
+                if(null!=record2){
+                    dlId=agentId2;
+                }
+            }
+            Db.update(Db.getSqlPara("user.saveUser", IdGen.uuid(),openId,nickName,avatarUrl,dlId));
             record=getUserInfoByOpenId(openId);
         }
         String key=record.get("id");
@@ -233,5 +243,22 @@ public class UserService extends BaseService {
        }catch (Exception e){
            throw new BusinessException("领取优惠券失败");
        }
+    }
+
+    public Record getUserAgentData(String userId) {
+        Record r=Db.findFirst(Db.getSqlPara("user.getUserAgentData",userId));
+        if(null==r){
+            r.set("vshow","-1");
+        }
+
+        return r;
+    }
+    @Before(Tx.class)
+    public void saveUserAgentData(String userId, String mobile, String name) {
+        Record r=Db.findFirst(Db.getSqlPara("user.getUserAgentData",userId));
+        if(null!=r){
+            throw new BusinessException("已经申请了");
+        }
+        Db.update(Db.getSqlPara("user.saveUserAgentData",IdGen.uuid(),userId,mobile,name));
     }
 }

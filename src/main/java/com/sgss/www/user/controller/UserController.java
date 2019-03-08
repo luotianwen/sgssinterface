@@ -26,6 +26,7 @@ public class UserController extends BaseController {
             @Param(name = "nickName", description = "昵称", required = true, dataType = "string"),
             @Param(name = "code", description = "微信code", required = true, dataType = "string"),
             @Param(name = "avatarUrl", description = "头像地址", required = true, dataType = "string"),
+            @Param(name = "agentId", description = "agentId", required = true, dataType = "string"),
     })
     @ApiResponses({
             @ApiResponse(code = 200, message = "成功", responseHeaders = {
@@ -37,6 +38,7 @@ public class UserController extends BaseController {
         String nickName=getPara("nickName");
         String code=getPara("code");
         String avatarUrl=getPara("avatarUrl");
+        String agentId=getPara("agentId");
         ReqResponse<Record> r = new ReqResponse();
         if(StrKit.isBlank(nickName)){
             r.setCode(1);
@@ -56,7 +58,7 @@ public class UserController extends BaseController {
 
         Record user;
         try {
-            user =userService.weixinlogin(nickName,code,avatarUrl);
+            user =userService.weixinlogin(nickName,code,avatarUrl,agentId);
             r.setData(user);
         }catch (BusinessException e){
             log.error("昵称"+nickName+" openId"+code+" 头像地址"+avatarUrl);
@@ -116,6 +118,42 @@ public class UserController extends BaseController {
         renderJson(r);
     }
 
+    @ApiOperation(url = "/v1/user/saveUserAgentData", tag = "user", httpMethod = "post", description = "申请代理")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "mobile", description = "手机号", required = true, dataType = "string"),
+            @Param(name = "name", description = "name", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "  "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void saveUserAgentData() {
+        String userId = getAttr("userId");
+        String mobile =getPara("mobile");
+        String name =getPara("name");
+        ReqResponse<Record> r = new ReqResponse();
+         userService.saveUserAgentData(userId,mobile,name);
+        renderJson(r);
+    }
+    @ApiOperation(url = "/v1/user/getUserAgentData", tag = "user", httpMethod = "post", description = "申请代理")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "  "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void getUserAgentData() {
+        String userId = getAttr("userId");
+        ReqResponse<Record> r = new ReqResponse();
+        r.setData(userService.getUserAgentData(userId));
+        renderJson(r);
+    }
     @ApiOperation(url = "/v1/user/saveAddress", tag = "user", httpMethod = "post", description = "地址列表")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),

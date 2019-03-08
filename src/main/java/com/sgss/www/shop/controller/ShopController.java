@@ -61,6 +61,8 @@ public class ShopController extends BaseController {
         returnData.set("coupons", shopService.getCoupons());
         //品牌
         returnData.set("brands", shopService.getBrands(1));
+        //weixin
+        returnData.set("weixin", shopService.getWeixin());
         r.setData(returnData);
         renderJson(r);
     }
@@ -833,7 +835,24 @@ public class ShopController extends BaseController {
         r.setData(shopService.getExpress());
         renderJson(r);
     }
-
+    @ApiOperation(url = "/v1/shop/getAgentStock", tag = "shop", httpMethod = "post", description = "分销商品价格")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "articleno", description = "货号", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "  "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void getAgentStock() {
+        String userId = getAttr("userId");
+        String articleno = getPara("articleno");
+        ReqResponse<List<Record>> r = new ReqResponse();
+        r.setData(shopService.getAgentStock(userId,articleno));
+        renderJson(r);
+    }
     @ApiOperation(url = "/v1/shop/returnExpress", tag = "shop", httpMethod = "post", description = "退货快递")
     @Params({
             @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
@@ -861,5 +880,23 @@ public class ShopController extends BaseController {
         }
         renderJson(r);
     }
+    @ApiOperation(url = "/v1/shop/getWeixin", tag = "shop", httpMethod = "post", description = "微信公众号文章")
 
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "  "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void getWeixin() {
+
+        ReqResponse<List<Record>> r = new ReqResponse();
+        try {
+           r.setData(shopService.getWeixin());
+        }catch (BusinessException e){
+            r.setCode(1);
+            r.setMsg(e.getErrMsg());
+        }
+        renderJson(r);
+    }
 }
