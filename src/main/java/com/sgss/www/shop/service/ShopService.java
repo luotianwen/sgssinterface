@@ -14,6 +14,7 @@ import com.sgss.www.conmon.*;
 import net.arccode.wechat.pay.api.protocol.refund.RefundResponse;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -381,6 +382,12 @@ public class ShopService extends BaseService {
         cond.set("pay_type", "1");
         cond.set("state", "10");
         cond.set("couponId", couponId);
+        String agent="";
+        Record record2=Db.findFirst(Db.getSqlPara("user.getUserAgent",userId));
+        if(null!=record2){
+            agent=record2.get("id");
+        }
+        cond.set("agent", agent);
         Db.update(Db.getSqlPara("shop.saveOrder", cond));
 
         Record ret = new Record();
@@ -545,7 +552,38 @@ public class ShopService extends BaseService {
 
     @Before(Tx.class)
     public void updateState(String type, String transaction_id, String ordersId, String outTradeNo) {
+        //支付 成功
         Db.update(Db.getSqlPara("shop.updateOrderPayInfoTransactionid", ordersId, transaction_id,outTradeNo));
+
+        double discount=0d;
+        //查询订单的代理
+         Record  r=Db.findFirst(Db.getSqlPara("shop.getUserIdById",ordersId));
+          if(null!=r){
+              //代理折扣
+              r=Db.findFirst(Db.getSqlPara("user.getDiscount",r.getStr("uid")));
+              if(null!=r){
+                    discount=r.getDouble("discount");
+                    //订单明细
+                 List<Record> subList = Db.find(Db.getSqlPara("shop.userOrderDetailList", ordersId));
+                 Record stockDiscount;
+                 float odd0d;
+                 double agentMoney=0d;
+                 for(Record od:subList){
+                     //货号成本折扣
+                     stockDiscount=Db.findFirst(Db.getSqlPara("shop.getDiscount",od.getStr("artNo"),discount));
+                   if(null!=stockDiscount){
+                       odd0d=stockDiscount.getFloat("discount");
+                       //计算代理体现金额
+                       agentMoney=(od.getDouble ("price")-(stockDiscount.getDouble("marketprice")*odd0d)/10d)*od.getInt("number");
+                      Db.update(Db.getSqlPara("shop.updateAgentMoney",od.getStr("id"),odd0d,agentMoney));
+                   }
+                 }
+
+              }
+          }
+
+
+
     }
 
     public Record getOrderInfoById(String orderNumber) {
@@ -577,5 +615,67 @@ public class ShopService extends BaseService {
 
     public List<Record> getWeixin() {
         return  Db.find(Db.getSqlPara("shop.getWeixin"));
+    }
+
+    public List<Record> agentOrderList(String userId) {
+        Record record2=Db.findFirst(Db.getSqlPara("user.getAgent",userId));
+        if(null==record2)
+            return null;
+        String agentId=record2.getStr("id");
+
+       return  Db.find(Db.getSqlPara("shop.agentOrderList",agentId));
+    }
+    @Before(Tx.class)
+    public void agentWithdrawal(String userId, String orderNumber) {
+        Record record2=Db.findFirst(Db.getSqlPara("user.getAgent",userId));
+        if(null==record2){
+            throw new BusinessException("不是分销商");
+        }
+        String agentId=record2.getStr("id");
+        String []_orderNumbers=orderNumber.split(",");
+        Record onr;
+        double money=0d;
+        double amoney=0d;
+        DecimalFormat df = new DecimalFormat("#0.00");
+        String agentOrderId=IdGen.uuid();
+        for (String on:_orderNumbers){
+            onr=Db.findFirst(Db.getSqlPara("shop.agentOrderByNumber",on,agentId));
+           if(null==onr){
+               throw new BusinessException("订单不存在或者未付款");
+           }
+            amoney=onr.getDouble("price");
+            money+=amoney;
+            Kv agentOrderDetail = Kv.by("id", IdGen.uuid());
+            agentOrderDetail.set("money", amoney);
+            agentOrderDetail.set("agentOrderId", agentOrderId);
+            agentOrderDetail.set("orderNumber", orderNumber);
+            Db.update(Db.getSqlPara("shop.saveAgentOrderDetail", agentOrderDetail));
+           //修改订单的分销状态
+            Db.update(Db.getSqlPara("shop.updateOrderIsAgent", agentOrderDetail));
+
+        }
+
+        Kv agentOrder = Kv.by("id", agentOrderId);
+        agentOrder.set("agentId", agentId);
+        agentOrder.set("money", money);
+        Db.update(Db.getSqlPara("shop.saveAgentOrder", agentOrder));
+
+    }
+
+    public Page<Record> agentOrderHisList(String userId, int pageNumber) {
+        Record record2=Db.findFirst(Db.getSqlPara("user.getAgent",userId));
+        if(null==record2){
+            throw new BusinessException("不是分销商");
+        }
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+        String agentId=record2.getStr("id");
+        Page<Record> page= Db.paginate(pageNumber,StaticPublic.PAGESIZE,Db.getSqlPara("shop.agentOrderHisList",agentId));
+        if(null!=page){
+            for(Record r:page.getList()){
+                r.set("createDate",sdf.format(r.get("createDate")));
+                r.set("updateDate",r.get("updateDate")==null?"":sdf.format(r.get("updateDate")));
+            }
+        }
+        return page;
     }
 }

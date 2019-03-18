@@ -21,7 +21,7 @@ public class SendMessage {
     public static void sendRegisterMessageCode(String mobile, String code) throws ClientException {
         Record record=new Record();
         record.set("code",code);
-        sendMessageCode(mobile,"SMS_142355125",record.toJson().toString());
+        sendMessageCode(mobile,"SMS_101040085",record.toJson().toString());
     }
 
     /**
@@ -32,7 +32,7 @@ public class SendMessage {
     public static void sendForgetMessageCode(String mobile, String code)throws ClientException {
         Record record=new Record();
         record.set("code",code);
-        sendMessageCode(mobile,"SMS_142621302",record.toJson().toString());
+        sendMessageCode(mobile,"SMS_101040085",record.toJson().toString());
     }
     /**
      * 修改手机号
@@ -42,7 +42,7 @@ public class SendMessage {
     public static void sendUpdateMessageCode(String mobile, String code)throws ClientException {
         Record record=new Record();
         record.set("code",code);
-        sendMessageCode(mobile,"SMS_146800169",record.toJson().toString());
+        sendMessageCode(mobile,"SMS_101040085",record.toJson().toString());
     }
     /**
      *
@@ -53,7 +53,7 @@ public class SendMessage {
     public static void sendLoginMessageCode(String mobile,   String code) throws ClientException {
         Record record=new Record();
         record.set("code",code);
-        sendMessageCode(mobile,"SMS_142350118",record.toJson().toString());
+        sendMessageCode(mobile,"SMS_101040085",record.toJson().toString());
 
     }
     public static void sendMessageCode(String mobile, String templateCode, String para) throws ClientException {

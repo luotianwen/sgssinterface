@@ -376,17 +376,21 @@ and c.id=#para(1)
   INSERT INTO s_order
   (id,create_date,del_flag, orderNumber,phone,consignee,address,user_id,order_time,
   state,goods_price,freight,favorable_price,total_price,pay_type,coupon_id,province_id,city_id
-  ,area_id
+  ,area_id,agentId
   )
   VALUES (#para(id), now(),0, #para(orderNumber), #para(phone), #para(consignee)
   , #para(address), #para(user_id), now(), #para(state)
   , #para(goods_price), #para(freight), #para(favorable_price), #para(total_price)
   , #para(pay_type), #para(couponId), #para(province_id), #para(city_id)
-  , #para(area_id));
+  , #para(area_id), #para(agent));
 #end
 #sql("getTotalPriceById")
 select total_price*100 as  price from s_order
 where orderNumber=#para(0)
+#end
+#sql("getUserIdById")
+select  a.userid as uid  from s_order o,s_agent a
+where orderNumber=#para(0) and o.agentId=a.id
 #end
 #sql("getOrderInfoById")
 select total_price*100 as  price ,outTradeNo  from s_order
@@ -506,6 +510,7 @@ order by o.create_date desc
 
 #sql("userOrderDetailList")
 SELECT
+o.id,
 o.orderNumber,
 o.artNo,
 o.spec1,
@@ -523,9 +528,17 @@ where o.del_flag=0
 order by o.create_date desc
 #end
 
+#sql("updateAgentMoney")
+update  s_order_detail
+set discount=#para(1),
+agentMoney=#para(2)
+where id=#para(0)
+#end
+
 #sql("orderOk")
 update s_order
-set state=50
+set state=50,
+complete_time=now()
 where
 user_id=#para(0)
 and
@@ -709,4 +722,83 @@ url
 from s_weixin s
 order by s.create_date desc
 limit 3
+#end
+
+#sql("agentOrderList")
+SELECT
+	o.orderNumber,
+	o.complete_time AS payTime,
+	u.nickname,
+	u.head_img as headImg,
+	( SELECT sum( od.agentMoney ) FROM s_order_detail od WHERE od.orderNumber = o.orderNumber ) AS price
+FROM
+	s_order o,
+	s_user u
+WHERE
+	o.user_id = u.id
+	AND o.isAgent = 0
+	AND o.state = '50'
+	AND TO_DAYS( NOW( ) ) - TO_DAYS( o.complete_time ) >= 7
+  and o.agentId=#para(0)
+	order by o.complete_time desc
+#end
+
+
+
+#sql("agentOrderByNumber")
+SELECT
+	o.orderNumber,
+	o.complete_time AS payTime,
+	u.nickname,
+	u.head_img as headImg,
+	( SELECT sum( od.agentMoney ) FROM s_order_detail od WHERE od.orderNumber = o.orderNumber ) AS price
+FROM
+	s_order o,
+	s_user u
+WHERE
+	o.user_id = u.id
+	AND o.isAgent = 0
+	AND o.state = '50'
+	AND TO_DAYS( NOW( ) ) - TO_DAYS( o.complete_time ) >= 7
+  and o.orderNumber=#para(0)
+  and o.agentId=#para(1)
+#end
+
+
+
+#sql("saveAgentOrderDetail")
+
+INSERT INTO s_agent_order_detail  (id,create_date,agentOrderId,orderNumber,money)
+  VALUES (#para(id),now(),#para(agentOrderId),#para(orderNumber),#para(money));
+#end
+
+
+#sql("updateOrderIsAgent")
+
+update
+s_order set isAgent=1
+where orderNumber=#para(orderNumber)
+#end
+
+
+#sql("saveAgentOrder")
+
+INSERT INTO s_agent_order (id,create_date,state, agentId,money)
+  VALUES (#para(id), now(),0, #para(agentId),  #para(money) );
+#end
+
+
+#sql("agentOrderHisList")
+SELECT
+  o.id,
+	o.num,
+  o.state,
+  money,
+  create_date as createDate,
+  update_date as updateDate
+FROM
+	s_agent_order o
+WHERE
+  o.agentId=#para(0)
+  order by create_date desc
 #end

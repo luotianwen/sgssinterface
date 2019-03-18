@@ -248,6 +248,7 @@ public class UserService extends BaseService {
     public Record getUserAgentData(String userId) {
         Record r=Db.findFirst(Db.getSqlPara("user.getUserAgentData",userId));
         if(null==r){
+            r=new Record();
             r.set("vshow","-1");
         }
 

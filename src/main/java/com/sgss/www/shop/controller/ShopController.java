@@ -754,6 +754,67 @@ public class ShopController extends BaseController {
         }
         renderJson(r);
     }
+    @ApiOperation(url = "/v1/shop/agentOrderList", tag = "shop", httpMethod = "post", description = "代理订单列表")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "   "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void agentOrderList() {
+        String userId = getAttr("userId");
+        ReqResponse<List<Record>> r = new ReqResponse();
+        List<Record> record = shopService.agentOrderList(userId);
+        r.setData(record);
+        renderJson(r);
+    }
+    @ApiOperation(url = "/v1/shop/agentOrderHisList", tag = "shop", httpMethod = "post", description = "分销体现历史")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "pageNumber", description = "页码", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "   "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void agentOrderHisList() {
+        String userId = getAttr("userId");
+        int pageNumber=getParaToInt("pageNumber");
+        ReqResponse<Page<Record>> r = new ReqResponse();
+        Page<Record> record = shopService.agentOrderHisList(userId,pageNumber);
+        r.setData(record);
+        renderJson(r);
+    }
+    @ApiOperation(url = "/v1/shop/agentWithdrawal", tag = "shop", httpMethod = "post", description = "申请分销订单")
+    @Params({
+            @Param(name = "tokenId", description = "当前用户id", required = true, dataType = "string"),
+            @Param(name = "orderNumber", description = "订单", required = true, dataType = "string"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "成功", responseHeaders = {
+                    @ResponseHeader(name = "code", description = " 0成功 1失败"),
+                    @ResponseHeader(name = "data", description = "   "),
+                    @ResponseHeader(name = "msg", description = "失败原因")})
+    })
+    public void agentWithdrawal() {
+        String userId = getAttr("userId");
+        String orderNumber = getPara("orderNumber");
+        ReqResponse<String> r = new ReqResponse();
+        try {
+            shopService.agentWithdrawal(userId, orderNumber);
+        }catch (Exception e){
+            e.printStackTrace();
+            r.setCode(1);
+            r.setMsg("申请失败");
+        }
+        renderJson(r);
+    }
+
 
     @ApiOperation(url = "/v1/shop/afterOrderList", tag = "shop", httpMethod = "post", description = "售后订单列表")
     @Params({

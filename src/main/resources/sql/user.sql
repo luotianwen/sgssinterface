@@ -171,9 +171,14 @@ where userid=#para(0)
 INSERT INTO s_agent (id,userid,mobile,create_date,del_flag,state,name) VALUE (#para(0),#para(1),#para(2),now(),0,2,#para(3))
 #end
 
+#sql("getUserAgent")
+select g.id from s_agent g,s_user u where u.id=#para(0) and g.userid=u.agentId
+#end
+
 #sql("getAgent")
 select id from s_agent where userid=#para(0)
 #end
+
 #sql("getDiscount")
 select d.discount as discount  from s_agent s,s_discount d where s.userid=#para(0)
 and d.id=s.discountId
