@@ -16,12 +16,18 @@ public class JsoupJavaUtils {
             for (Element img:imgs){
                 e=img;
                 imgSrc=e.attr("src");
+                if(imgSrc.indexOf("http") < 0) {
+                    if(imgSrc.endsWith("/")){
+                        imgSrc=imgSrc.substring(0,imgSrc.length()-1);
+                    }
+                    e.attr("src", imgSrc.replaceAll("/userfiles/", PropKit.get("fileServer") + "/userfiles/"));
 
-                if(imgSrc.endsWith("/")){
-                    imgSrc=imgSrc.substring(0,imgSrc.length()-1);
                 }
+                else{
+                    e.attr("src",imgSrc);
+                }
+
                 e.removeAttr("style");
-                 e.attr("src", imgSrc.replaceAll("/userfiles/", PropKit.get("fileServer") + "/userfiles/"));
                 e.attr("style","width:100%;");
                 //e.attr("title","");
                 e.removeAttr("title");
